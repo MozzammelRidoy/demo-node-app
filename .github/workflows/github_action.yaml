@@ -42,6 +42,34 @@ jobs:
       - name: Build Application
         run: npm run build
 
-      # - name: Configure SSH
-      #   env:
-      #     SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        env:
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+        run: |
+          # Create deployment directory on EC2
+          ssh $EC2_USER@$EC2_HOST "mkdir -p ~/app"
+          # Copy files to EC2 instance.
+          rsync -avz \
+            --exclude 'node_modules' \
+            --exclude '.github' \
+            --exclude '.git' \
+            . $EC2_USER@$EC2_HOST:~/app/
+
+          # install production Dependencies on EC2
+          ssh $EC2_USER@$EC2_HOST "cd ~/app && export PATH=$PATH:/run/user/1000/fnm_multishells/143050_1765903645534/bin && npm install"
+
+          # Stop existing PM2 process if it exists
+          ssh $EC2_USER@$EC2_HOST "export PATH=$PATH:/run/user/1000/fnm_multishells/143050_1765903645534/bin && pm2 delete demo-node-app || true"
+
+          # Start the application using PM2
+          ssh $EC2_USER@$EC2_HOST "export PATH=$PATH:/run/user/1000/fnm_multishells/143050_1765903645534/bin && cd ~/app && pm2 start dist/server.js --name demo-node-app"
