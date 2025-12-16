@@ -66,10 +66,10 @@ jobs:
             . $EC2_USER@$EC2_HOST:~/app/
 
           # install production Dependencies on EC2
-          ssh $EC2_USER@$EC2_HOST "cd ~/app && export PATH=$PATH:/run/user/1000/fnm_multishells/143050_1765903645534/bin && npm install"
+          ssh $EC2_USER@$EC2_HOST "cd ~/app && export PATH=$PATH:/home/ubuntu/.nvm/versions/node/v22.21.1/bin/pm2 && npm install"
 
           # Stop existing PM2 process if it exists
-          ssh $EC2_USER@$EC2_HOST "export PATH=$PATH:/run/user/1000/fnm_multishells/143050_1765903645534/bin && pm2 delete demo-node-app || true"
+          ssh $EC2_USER@$EC2_HOST "export PATH=$PATH:/home/ubuntu/.nvm/versions/node/v22.21.1/bin/pm2 && pm2 delete demo-node-app || true"
 
           # Start the application using PM2
-          ssh $EC2_USER@$EC2_HOST "export PATH=$PATH:/run/user/1000/fnm_multishells/143050_1765903645534/bin && cd ~/app && pm2 start dist/server.js --name demo-node-app"
+          ssh $EC2_USER@$EC2_HOST "export PATH=$PATH:/home/ubuntu/.nvm/versions/node/v22.21.1/bin/pm2 && cd ~/app && pm2 start dist/server.js --name demo-node-app"
