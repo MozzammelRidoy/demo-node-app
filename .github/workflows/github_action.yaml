@@ -51,6 +51,9 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
+          # Append environment variables to .env file on EC2
+          echo "$EC2_ENV" >> ~/app/.env
+
       - name: Deploy to EC2
         env:
           EC2_USER: ${{ secrets.EC2_USER }}
@@ -58,6 +61,8 @@ jobs:
         run: |
           # Create deployment directory on EC2
           ssh $EC2_USER@$EC2_HOST "mkdir -p ~/app"
+
+
           # Copy files to EC2 instance.
           rsync -avz \
             --exclude 'node_modules' \
@@ -78,9 +83,6 @@ jobs:
           source ~/.nvm/nvm.sh &&
           nvm use 22 &&
           pm2 delete demo-node-app || true"
-
-          # Append environment variables to .env file on EC2
-          echo "$EC2_ENV" > ~/app/.env
 
           # Start the application using PM2
           ssh $EC2_USER@$EC2_HOST "
