@@ -80,7 +80,7 @@ jobs:
           pm2 delete demo-node-app || true"
 
           # Append environment variables to .env file on EC2
-          echo "$EC2_ENV" >> ~/app/.env
+          echo "$EC2_ENV" > ~/app/.env
 
           # Start the application using PM2
           ssh $EC2_USER@$EC2_HOST "
