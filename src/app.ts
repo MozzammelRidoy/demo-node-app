@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import express, { Application, Request, Response } from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
@@ -105,7 +104,7 @@ const homeRoute = (req: Request, res: Response): void => {
     server: 'Active',
     success: true,
     status: 200,
-    message: 'This is Home Route.',
+    message: 'Thanks from home route.',
     timestamp: new Date().toISOString()
   })
 }
