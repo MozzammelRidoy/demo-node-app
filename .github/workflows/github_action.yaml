@@ -57,37 +57,40 @@ jobs:
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_ENV: ${{ secrets.EC2_ENV }}
         run: |
-          # Create deployment directory on EC2
+          # Create app directory
           ssh $EC2_USER@$EC2_HOST "mkdir -p ~/app"
 
-
-          # Copy files to EC2 instance.
+          # Copy files
           rsync -avz \
             --exclude 'node_modules' \
             --exclude '.github' \
             --exclude '.git' \
             . $EC2_USER@$EC2_HOST:~/app/
 
-          # install production Dependencies on EC2
+          # Create .env file on EC2 (IMPORTANT FIX)
           ssh $EC2_USER@$EC2_HOST "
-          source ~/.nvm/nvm.sh &&
-          nvm use 22 &&
-          cd ~/app &&
-          npm install"
+            echo '$EC2_ENV' > ~/app/.env
+          "
 
-           # Append environment variables to .env file on EC2
-          echo "$EC2_ENV" >> ~/app/.env
-
-
-          # Stop existing PM2 process if it exists
+          # Install dependencies
           ssh $EC2_USER@$EC2_HOST "
-          source ~/.nvm/nvm.sh &&
-          nvm use 22 &&
-          pm2 delete demo-node-app || true"
+            source ~/.nvm/nvm.sh &&
+            nvm use 22 &&
+            cd ~/app &&
+            npm install
+          "
 
-          # Start the application using PM2
+          # Stop old PM2 app
           ssh $EC2_USER@$EC2_HOST "
-          source ~/.nvm/nvm.sh &&
-          nvm use 22 &&
-          cd ~/app &&
-          pm2 start dist/server.js --name demo-node-app"
+            source ~/.nvm/nvm.sh &&
+            nvm use 22 &&
+            pm2 delete demo-node-app || true
+          "
+
+          # Start app with PM2
+          ssh $EC2_USER@$EC2_HOST "
+            source ~/.nvm/nvm.sh &&
+            nvm use 22 &&
+            cd ~/app &&
+            pm2 start dist/server.js --name demo-node-app
+          "
